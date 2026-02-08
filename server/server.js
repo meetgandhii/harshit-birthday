@@ -17,7 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/quiz', {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://admin:cheentapakdamdam@quiz.c5ahulm.mongodb.net/?appName=quiz', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
@@ -27,7 +27,8 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   role: { type: String, enum: ['admin', 'player', 'display'], default: 'player' },
   score: { type: Number, default: 0 },
-  online: { type: Boolean, default: true }
+  online: { type: Boolean, default: true },
+  avatar: { type: String }
 });
 
 const User = mongoose.model('User', userSchema);
@@ -113,35 +114,40 @@ io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
   socket.on('join', async (name) => {
-    try {
-      let user = await User.findOne({ name });
+  try {
+    let user = await User.findOne({ name });
 
-      if (!user) {
-        // Create new user
-        let role = 'player';
-        if (name.toLowerCase() === 'lappy') {
-          role = 'display';
-        } else {
-          const adminExists = await User.findOne({ role: 'admin' });
-          if (!adminExists) {
-            role = 'admin';
-          }
-        }
-
-        user = new User({ name, role, online: true });
-        await user.save();
+    if (!user) {
+      // Create new user
+      let role = 'player';
+      if (name.toLowerCase() === 'lappy') {
+        role = 'display';
       } else {
-        user.online = true;
-        await user.save();
+        const adminExists = await User.findOne({ role: 'admin' });
+        if (!adminExists) {
+          role = 'admin';
+        }
       }
 
-      socket.userId = user._id.toString();
-      socket.emit('userJoined', user);
-      await broadcastGameState();
-    } catch (error) {
-      console.error('Join error:', error);
+      user = new User({ 
+        name, 
+        role, 
+        online: true, 
+        avatar: `/images/${name}.png` // This will work if the file exists in React's public/images/
+      });
+      await user.save();
+    } else {
+      user.online = true;
+      await user.save();
     }
-  });
+
+    socket.userId = user._id.toString();
+    socket.emit('userJoined', user);
+    await broadcastGameState();
+  } catch (error) {
+    console.error('Join error:', error);
+  }
+});
 
   socket.on('rejoin', async (name) => {
     try {
@@ -206,22 +212,26 @@ io.on('connection', (socket) => {
   });
 
   socket.on('judgeAnswer', async ({ playerId, isCorrect }) => {
-    try {
-      const answer = gameState.answers.find(a => a.playerId === playerId);
-      if (answer && !answer.judged) {
-        answer.judged = true;
-        answer.isCorrect = isCorrect;
+  try {
+    const answer = gameState.answers.find(a => a.playerId === playerId);
+    if (answer && !answer.judged) {
+      answer.judged = true;
+      answer.isCorrect = isCorrect;
 
-        if (isCorrect) {
-          await User.findByIdAndUpdate(playerId, { $inc: { score: 1 } });
-        }
-
-        await broadcastGameState();
+      if (isCorrect) {
+        await User.findByIdAndUpdate(playerId, { $inc: { score: 1 } });
       }
-    } catch (error) {
-      console.error('Judge answer error:', error);
+
+      // REFRESH players with updated scores
+      const updatedUsers = await User.find({ online: true });
+      gameState.players = updatedUsers;
+
+      await broadcastGameState();
     }
-  });
+  } catch (error) {
+    console.error('Judge answer error:', error);
+  }
+});
 
   socket.on('nextQuestion', async () => {
     try {

@@ -46,7 +46,17 @@ export default function QuizParty() {
       socket.off('timerUpdate');
       socket.off('timerPausedUpdate');
     };
-  }, []);
+  }, []); // FIXED: Empty dependency array
+
+  // SEPARATE useEffect to sync user score
+  useEffect(() => {
+    if (gameState && user) {
+      const updatedUser = gameState.players.find(p => p._id === user._id);
+      if (updatedUser && updatedUser.score !== user.score) {
+        setUser(prevUser => ({ ...prevUser, score: updatedUser.score }));
+      }
+    }
+  }, [gameState]); // Only watch gameState
 
   const handleJoin = () => {
     if (name.trim()) {
@@ -125,9 +135,23 @@ export default function QuizParty() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {gameState.players.map((p) => (
                 <div key={p._id} className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 text-white">
-                  <div className="text-5xl mb-2">{p.name[0].toUpperCase()}</div>
+                  {p.avatar ? (
+                    <img 
+                      src={p.avatar} 
+                      alt={p.name} 
+                      className="w-16 h-16 rounded-full mx-auto mb-2 border-2 border-white object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full mx-auto mb-2 border-2 border-white bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-3xl font-bold">
+                      {p.name[0].toUpperCase()}
+                    </div>
+                  )}
                   <div className="text-xl font-bold">{p.name}</div>
                   <div className="text-sm opacity-75">{p.role}</div>
+                  <div className="text-lg font-bold mt-2">🏆 {p.score}</div>
                 </div>
               ))}
             </div>
@@ -160,12 +184,21 @@ export default function QuizParty() {
                   <div
                     key={p._id}
                     className={`rounded-2xl p-4 text-center transition-all ${
-                      hasAnswered
-                        ? 'bg-green-400 scale-105'
-                        : 'bg-white/30 backdrop-blur-lg'
+                      hasAnswered ? 'bg-green-400 scale-105' : 'bg-white/30 backdrop-blur-lg'
                     }`}
                   >
-                    <div className="text-4xl mb-2">{p.name[0].toUpperCase()}</div>
+                    {p.avatar ? (
+                      <img 
+                        src={p.avatar} 
+                        alt={p.name} 
+                        className="w-12 h-12 rounded-full mx-auto mb-2 border-2 border-white object-cover"
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full mx-auto mb-2 border-2 border-white bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-2xl font-bold">
+                        {p.name[0].toUpperCase()}
+                      </div>
+                    )}
                     <div className="text-white font-bold">{p.name}</div>
                     {hasAnswered && <div className="text-2xl">✅</div>}
                   </div>
@@ -191,17 +224,28 @@ export default function QuizParty() {
                     key={ans.playerId}
                     className={`rounded-2xl p-6 ${
                       ans.judged
-                        ? ans.isCorrect
-                          ? 'bg-green-400'
-                          : 'bg-red-400'
+                        ? ans.isCorrect ? 'bg-green-400' : 'bg-red-400'
                         : 'bg-white/90'
                     } backdrop-blur-lg shadow-lg`}
                   >
                     <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-3xl mb-2">{player.name[0].toUpperCase()}</div>
-                        <div className="font-bold text-xl">{player.name}</div>
-                        <div className="text-lg mt-2">{ans.answer}</div>
+                      <div className="flex items-center gap-3">
+                        {player.avatar ? (
+                          <img 
+                            src={player.avatar} 
+                            alt={player.name} 
+                            className="w-12 h-12 rounded-full border-2 border-white object-cover"
+                            onError={(e) => e.target.style.display = 'none'}
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full border-2 border-white bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-2xl font-bold">
+                            {player.name[0].toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-bold text-xl">{player.name}</div>
+                          <div className="text-lg mt-1">{ans.answer}</div>
+                        </div>
                       </div>
                       {ans.judged && (
                         <div className="text-5xl">
@@ -236,7 +280,18 @@ export default function QuizParty() {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 {gameState.players.map((p) => (
                   <div key={p._id} className="bg-white rounded-2xl p-4">
-                    <div className="text-4xl mb-2">{p.name[0].toUpperCase()}</div>
+                    {p.avatar ? (
+                      <img 
+                        src={p.avatar} 
+                        alt={p.name} 
+                        className="w-12 h-12 rounded-full mx-auto mb-2 border-2 border-gray-300 object-cover"
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full mx-auto mb-2 border-2 border-gray-300 bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-2xl font-bold">
+                        {p.name[0].toUpperCase()}
+                      </div>
+                    )}
                     <div className="font-bold text-xl">{p.name}</div>
                     <div className="text-sm text-gray-600">{p.role}</div>
                     <div className="text-lg font-bold text-purple-600">Score: {p.score}</div>
@@ -298,7 +353,18 @@ export default function QuizParty() {
                         hasAnswered ? 'bg-green-400' : 'bg-white/50'
                       }`}
                     >
-                      <div className="text-3xl">{p.name[0].toUpperCase()}</div>
+                      {p.avatar ? (
+                        <img 
+                          src={p.avatar} 
+                          alt={p.name} 
+                          className="w-10 h-10 rounded-full mx-auto mb-2 border-2 border-white object-cover"
+                          onError={(e) => e.target.style.display = 'none'}
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full mx-auto mb-2 border-2 border-white bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xl font-bold">
+                          {p.name[0].toUpperCase()}
+                        </div>
+                      )}
                       <div className="font-bold">{p.name}</div>
                       {hasAnswered && <div className="text-xl">✅</div>}
                     </div>
@@ -322,9 +388,7 @@ export default function QuizParty() {
                       key={ans.playerId}
                       className={`rounded-2xl p-4 ${
                         ans.judged
-                          ? ans.isCorrect
-                            ? 'bg-green-400'
-                            : 'bg-red-400'
+                          ? ans.isCorrect ? 'bg-green-400' : 'bg-red-400'
                           : 'bg-white'
                       } shadow-lg`}
                     >
@@ -380,7 +444,19 @@ export default function QuizParty() {
     <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 p-4">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-4 mb-4 text-white text-center">
-          <h2 className="text-3xl font-black mb-2">Hey {user.name}! 👋</h2>
+          {user.avatar ? (
+            <img 
+              src={user.avatar} 
+              alt={user.name} 
+              className="w-24 h-24 rounded-full mx-auto mb-2 border-4 border-white object-cover"
+              onError={(e) => e.target.style.display = 'none'}
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-full mx-auto mb-2 border-4 border-white bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-4xl font-bold">
+              {user.name[0].toUpperCase()}
+            </div>
+          )}
+          <h2 className="text-3xl font-black mb-2">{user.name}</h2>
           <div className="text-2xl font-bold">Score: {user.score} 🏆</div>
         </div>
 
@@ -446,7 +522,18 @@ export default function QuizParty() {
                       hasAnswered ? 'bg-green-400' : 'bg-white/50'
                     }`}
                   >
-                    <div className="text-2xl">{p.name[0].toUpperCase()}</div>
+                    {p.avatar ? (
+                      <img 
+                        src={p.avatar} 
+                        alt={p.name} 
+                        className="w-8 h-8 rounded-full mx-auto mb-1 border-2 border-white object-cover"
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full mx-auto mb-1 border-2 border-white bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-sm font-bold">
+                        {p.name[0].toUpperCase()}
+                      </div>
+                    )}
                     <div className="text-sm font-bold">{p.name}</div>
                     {hasAnswered && <div className="text-lg">✅</div>}
                   </div>
