@@ -44,14 +44,14 @@ const questionSchema = new mongoose.Schema({
 const Question = mongoose.model('Question', questionSchema);
 
 const avatarMap = {
-  'Nirmit': 'https://drive.google.com/uc?export=view&id=1cJPBAet9bHlWi9FbWkWLf-eWS8ddI-aS',
-  'Meet': 'https://drive.google.com/uc?export=view&id=1YDIewgHkB-YZD7MR3RiDjT0UuKLvNMvj',
-  'Jainam': 'https://drive.google.com/uc?export=view&id=1YyyJIafRsSx870C7_qCnBv3Ggn1PaH8z',
-  'Simran': 'https://drive.google.com/uc?export=view&id=10e8ju_BSTv8ZeHpBqBV5N7hscn23QNjG',
-  'Darsh': 'https://drive.google.com/uc?export=view&id=1wO2CU8iYyHfFUfeuFyMpswhdcmhd3BEi',
-  'Prachi': 'https://drive.google.com/uc?export=view&id=1kR7MKTCMekEZEsJF4NrOFWMtel8vnRa-',
-  'Aadira': 'https://drive.google.com/uc?export=view&id=1jlKMIL73G_oCDZUAX6yUq6czPpab4PXM',
-  'Harshit': 'https://drive.google.com/uc?export=view&id=1IN7OEmW82qtt4WVMLd9pBc3KBMm838uR'
+  'Nirmit_3133': 'hthttps://imgur.com/gaENF0H',
+  'Meet': 'https://imgur.com/PslQpC9',
+  'Basanti_Bai': 'https://imgur.com/9gzFY3k',
+  'Simran_Sautan': 'https://imgur.com/31zI2ID',
+  'Bada_Bheem': 'https://imgur.com/1IWzq07',
+  'Choti_Gundi': 'https://imgur.com/HMNcG8E',
+  'Diraarara': 'https://imgur.com/9ltgjpT',
+  'Harshit': 'https://imgur.com/O7V0Ktp'
 };
 
 // Game State
