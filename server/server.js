@@ -44,14 +44,14 @@ const questionSchema = new mongoose.Schema({
 const Question = mongoose.model('Question', questionSchema);
 
 const avatarMap = {
-  'Nirmit_3133': 'hthttps://imgur.com/gaENF0H',
-  'Meet': 'https://imgur.com/PslQpC9',
-  'Basanti_Bai': 'https://imgur.com/9gzFY3k',
-  'Simran_Sautan': 'https://imgur.com/31zI2ID',
-  'Bada_Bheem': 'https://imgur.com/1IWzq07',
-  'Choti_Gundi': 'https://imgur.com/HMNcG8E',
-  'Diraarara': 'https://imgur.com/9ltgjpT',
-  'Harshit': 'https://imgur.com/O7V0Ktp'
+  'Nirmit_3133': 'https://i.imgur.com/gaENF0H.jpg',
+  'Meet': 'https://i.imgur.com/PslQpC9.jpg',
+  'Basanti_Bai': 'https://i.imgur.com/9gzFY3k.jpg',
+  'Simran_Sautan': 'https://i.imgur.com/31zI2ID.jpg',
+  'Bada_Bheem': 'https://i.imgur.com/1IWzq07.jpg',
+  'Choti_Gundi': 'https://i.imgur.com/HMNcG8E.jpg',
+  'Diraarara': 'https://i.imgur.com/9ltgjpT.jpg',
+  'Harshit': 'https://i.imgur.com/O7V0Ktp.jpg'
 };
 
 // Game State
