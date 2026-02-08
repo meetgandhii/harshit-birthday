@@ -17,7 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://admin:cheentapakdamdam@quiz.c5ahulm.mongodb.net/?appName=quiz', {
+mongoose.connect(process.env.MONGODB_URI || 'abcd', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
