@@ -37,7 +37,8 @@ const User = mongoose.model('User', userSchema);
 const questionSchema = new mongoose.Schema({
   question: { type: String, required: true },
   hint: { type: String, default: '' },
-  order: { type: Number, required: true }
+  order: { type: Number, required: true },
+  weightage: { type: Number, default: 1 } // ADD THIS LINE
 });
 
 const Question = mongoose.model('Question', questionSchema);
@@ -88,12 +89,12 @@ function startTimer() {
   gameState.timerPaused = false;
   io.emit('timerUpdate', gameState.timeLeft);
   io.emit('timerPausedUpdate', gameState.timerPaused);
-  
+
   timerInterval = setInterval(() => {
     if (!gameState.timerPaused) {  // ONLY TICK IF NOT PAUSED
       gameState.timeLeft--;
       io.emit('timerUpdate', gameState.timeLeft);
-      
+
       if (gameState.timeLeft <= 0) {
         clearInterval(timerInterval);
         endQuestion();
@@ -114,40 +115,40 @@ io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
   socket.on('join', async (name) => {
-  try {
-    let user = await User.findOne({ name });
+    try {
+      let user = await User.findOne({ name });
 
-    if (!user) {
-      // Create new user
-      let role = 'player';
-      if (name.toLowerCase() === 'lappy') {
-        role = 'display';
-      } else {
-        const adminExists = await User.findOne({ role: 'admin' });
-        if (!adminExists) {
-          role = 'admin';
+      if (!user) {
+        // Create new user
+        let role = 'player';
+        if (name.toLowerCase() === 'lappy') {
+          role = 'display';
+        } else {
+          const adminExists = await User.findOne({ role: 'admin' });
+          if (!adminExists) {
+            role = 'admin';
+          }
         }
+
+        user = new User({
+          name,
+          role,
+          online: true,
+          avatar: `/images/${name}.png` // This will work if the file exists in React's public/images/
+        });
+        await user.save();
+      } else {
+        user.online = true;
+        await user.save();
       }
 
-      user = new User({ 
-        name, 
-        role, 
-        online: true, 
-        avatar: `/images/${name}.png` // This will work if the file exists in React's public/images/
-      });
-      await user.save();
-    } else {
-      user.online = true;
-      await user.save();
+      socket.userId = user._id.toString();
+      socket.emit('userJoined', user);
+      await broadcastGameState();
+    } catch (error) {
+      console.error('Join error:', error);
     }
-
-    socket.userId = user._id.toString();
-    socket.emit('userJoined', user);
-    await broadcastGameState();
-  } catch (error) {
-    console.error('Join error:', error);
-  }
-});
+  });
 
   socket.on('rejoin', async (name) => {
     try {
@@ -212,26 +213,28 @@ io.on('connection', (socket) => {
   });
 
   socket.on('judgeAnswer', async ({ playerId, isCorrect }) => {
-  try {
-    const answer = gameState.answers.find(a => a.playerId === playerId);
-    if (answer && !answer.judged) {
-      answer.judged = true;
-      answer.isCorrect = isCorrect;
+    try {
+      const answer = gameState.answers.find(a => a.playerId === playerId);
+      if (answer && !answer.judged) {
+        answer.judged = true;
+        answer.isCorrect = isCorrect;
 
-      if (isCorrect) {
-        await User.findByIdAndUpdate(playerId, { $inc: { score: 1 } });
+        if (isCorrect) {
+          // ADD WEIGHTAGE - use current question's weightage
+          const points = gameState.currentQuestion.weightage || 1;
+          await User.findByIdAndUpdate(playerId, { $inc: { score: points } });
+        }
+
+        // REFRESH players with updated scores
+        const updatedUsers = await User.find({ online: true });
+        gameState.players = updatedUsers;
+
+        await broadcastGameState();
       }
-
-      // REFRESH players with updated scores
-      const updatedUsers = await User.find({ online: true });
-      gameState.players = updatedUsers;
-
-      await broadcastGameState();
+    } catch (error) {
+      console.error('Judge answer error:', error);
     }
-  } catch (error) {
-    console.error('Judge answer error:', error);
-  }
-});
+  });
 
   socket.on('nextQuestion', async () => {
     try {
@@ -258,14 +261,14 @@ io.on('connection', (socket) => {
   });
 
   socket.on('toggleTimer', async () => {
-  try {
-    gameState.timerPaused = !gameState.timerPaused;
-    io.emit('timerPausedUpdate', gameState.timerPaused);
-    console.log(`Timer ${gameState.timerPaused ? 'paused' : 'resumed'}`);
-  } catch (error) {
-    console.error('Toggle timer error:', error);
-  }
-});
+    try {
+      gameState.timerPaused = !gameState.timerPaused;
+      io.emit('timerPausedUpdate', gameState.timerPaused);
+      console.log(`Timer ${gameState.timerPaused ? 'paused' : 'resumed'}`);
+    } catch (error) {
+      console.error('Toggle timer error:', error);
+    }
+  });
 
   socket.on('disconnect', async () => {
     console.log('User disconnected:', socket.id);
@@ -320,7 +323,7 @@ app.get('/api/reset', async (req, res) => {
       players: [],
       timer: null,
       timeLeft: 30,
-      timerPaused: false 
+      timerPaused: false
     };
     res.json({ message: 'Game reset successfully' });
   } catch (error) {

@@ -136,9 +136,9 @@ export default function QuizParty() {
               {gameState.players.map((p) => (
                 <div key={p._id} className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 text-white">
                   {p.avatar ? (
-                    <img 
-                      src={p.avatar} 
-                      alt={p.name} 
+                    <img
+                      src={p.avatar}
+                      alt={p.name}
                       className="w-16 h-16 rounded-full mx-auto mb-2 border-2 border-white object-cover"
                       onError={(e) => {
                         e.target.style.display = 'none';
@@ -165,9 +165,14 @@ export default function QuizParty() {
                 <span className="text-2xl font-bold text-purple-600">
                   Question {gameState.currentQuestionIndex + 1}
                 </span>
-                <span className={`text-3xl font-black ${timerPaused ? 'text-gray-500' : 'text-orange-500'}`}>
-                  {timerPaused ? '⏸️' : '⏱️'} {timeLeft}s
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xl font-bold text-green-600">
+                    {gameState.currentQuestion.weightage} {gameState.currentQuestion.weightage === 1 ? 'pt' : 'pts'}
+                  </span>
+                  <span className={`text-3xl font-black ${timerPaused ? 'text-gray-500' : 'text-orange-500'}`}>
+                    {timerPaused ? '⏸️' : '⏱️'} {timeLeft}s
+                  </span>
+                </div>
               </div>
               <p className="text-3xl font-bold text-gray-800 mb-4">
                 {gameState.currentQuestion.question}
@@ -183,14 +188,13 @@ export default function QuizParty() {
                 return (
                   <div
                     key={p._id}
-                    className={`rounded-2xl p-4 text-center transition-all ${
-                      hasAnswered ? 'bg-green-400 scale-105' : 'bg-white/30 backdrop-blur-lg'
-                    }`}
+                    className={`rounded-2xl p-4 text-center transition-all ${hasAnswered ? 'bg-green-400 scale-105' : 'bg-white/30 backdrop-blur-lg'
+                      }`}
                   >
                     {p.avatar ? (
-                      <img 
-                        src={p.avatar} 
-                        alt={p.name} 
+                      <img
+                        src={p.avatar}
+                        alt={p.name}
                         className="w-12 h-12 rounded-full mx-auto mb-2 border-2 border-white object-cover"
                         onError={(e) => e.target.style.display = 'none'}
                       />
@@ -222,18 +226,17 @@ export default function QuizParty() {
                 return (
                   <div
                     key={ans.playerId}
-                    className={`rounded-2xl p-6 ${
-                      ans.judged
-                        ? ans.isCorrect ? 'bg-green-400' : 'bg-red-400'
-                        : 'bg-white/90'
-                    } backdrop-blur-lg shadow-lg`}
+                    className={`rounded-2xl p-6 ${ans.judged
+                      ? ans.isCorrect ? 'bg-green-400' : 'bg-red-400'
+                      : 'bg-white/90'
+                      } backdrop-blur-lg shadow-lg`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         {player.avatar ? (
-                          <img 
-                            src={player.avatar} 
-                            alt={player.name} 
+                          <img
+                            src={player.avatar}
+                            alt={player.name}
                             className="w-12 h-12 rounded-full border-2 border-white object-cover"
                             onError={(e) => e.target.style.display = 'none'}
                           />
@@ -281,9 +284,9 @@ export default function QuizParty() {
                 {gameState.players.map((p) => (
                   <div key={p._id} className="bg-white rounded-2xl p-4">
                     {p.avatar ? (
-                      <img 
-                        src={p.avatar} 
-                        alt={p.name} 
+                      <img
+                        src={p.avatar}
+                        alt={p.name}
                         className="w-12 h-12 rounded-full mx-auto mb-2 border-2 border-gray-300 object-cover"
                         onError={(e) => e.target.style.display = 'none'}
                       />
@@ -327,11 +330,10 @@ export default function QuizParty() {
               <div className="flex gap-3 mb-4">
                 <button
                   onClick={handleToggleTimer}
-                  className={`flex-1 ${
-                    timerPaused
-                      ? 'bg-green-500 hover:bg-green-600'
-                      : 'bg-yellow-500 hover:bg-yellow-600'
-                  } text-white font-bold text-lg py-3 rounded-2xl transition-colors`}
+                  className={`flex-1 ${timerPaused
+                    ? 'bg-green-500 hover:bg-green-600'
+                    : 'bg-yellow-500 hover:bg-yellow-600'
+                    } text-white font-bold text-lg py-3 rounded-2xl transition-colors`}
                 >
                   {timerPaused ? '▶️ RESUME' : '⏸️ PAUSE'}
                 </button>
@@ -349,14 +351,13 @@ export default function QuizParty() {
                   return (
                     <div
                       key={p._id}
-                      className={`rounded-xl p-3 text-center ${
-                        hasAnswered ? 'bg-green-400' : 'bg-white/50'
-                      }`}
+                      className={`rounded-xl p-3 text-center ${hasAnswered ? 'bg-green-400' : 'bg-white/50'
+                        }`}
                     >
                       {p.avatar ? (
-                        <img 
-                          src={p.avatar} 
-                          alt={p.name} 
+                        <img
+                          src={p.avatar}
+                          alt={p.name}
                           className="w-10 h-10 rounded-full mx-auto mb-2 border-2 border-white object-cover"
                           onError={(e) => e.target.style.display = 'none'}
                         />
@@ -386,11 +387,10 @@ export default function QuizParty() {
                   return (
                     <div
                       key={ans.playerId}
-                      className={`rounded-2xl p-4 ${
-                        ans.judged
-                          ? ans.isCorrect ? 'bg-green-400' : 'bg-red-400'
-                          : 'bg-white'
-                      } shadow-lg`}
+                      className={`rounded-2xl p-4 ${ans.judged
+                        ? ans.isCorrect ? 'bg-green-400' : 'bg-red-400'
+                        : 'bg-white'
+                        } shadow-lg`}
                     >
                       <div className="flex justify-between items-center">
                         <div>
@@ -445,9 +445,9 @@ export default function QuizParty() {
       <div className="max-w-2xl mx-auto">
         <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-4 mb-4 text-white text-center">
           {user.avatar ? (
-            <img 
-              src={user.avatar} 
-              alt={user.name} 
+            <img
+              src={user.avatar}
+              alt={user.name}
               className="w-24 h-24 rounded-full mx-auto mb-2 border-4 border-white object-cover"
               onError={(e) => e.target.style.display = 'none'}
             />
@@ -518,14 +518,13 @@ export default function QuizParty() {
                 return (
                   <div
                     key={p._id}
-                    className={`rounded-xl p-3 text-center ${
-                      hasAnswered ? 'bg-green-400' : 'bg-white/50'
-                    }`}
+                    className={`rounded-xl p-3 text-center ${hasAnswered ? 'bg-green-400' : 'bg-white/50'
+                      }`}
                   >
                     {p.avatar ? (
-                      <img 
-                        src={p.avatar} 
-                        alt={p.name} 
+                      <img
+                        src={p.avatar}
+                        alt={p.name}
                         className="w-8 h-8 rounded-full mx-auto mb-1 border-2 border-white object-cover"
                         onError={(e) => e.target.style.display = 'none'}
                       />
@@ -548,19 +547,18 @@ export default function QuizParty() {
             <div className="text-6xl mb-4">👀</div>
             <p className="text-2xl font-bold text-gray-800 mb-2">Judging answers...</p>
             <p className="text-gray-600">Admin is reviewing all answers!</p>
-            
+
             {gameState.answers.find(a => a.playerId === user._id && a.judged) && (
-              <div className={`mt-6 p-6 rounded-2xl ${
-                gameState.answers.find(a => a.playerId === user._id).isCorrect
-                  ? 'bg-green-100 border-2 border-green-400'
-                  : 'bg-red-100 border-2 border-red-400'
-              }`}>
+              <div className={`mt-6 p-6 rounded-2xl ${gameState.answers.find(a => a.playerId === user._id).isCorrect
+                ? 'bg-green-100 border-2 border-green-400'
+                : 'bg-red-100 border-2 border-red-400'
+                }`}>
                 <div className="text-6xl mb-2">
                   {gameState.answers.find(a => a.playerId === user._id).isCorrect ? '🎉' : '😢'}
                 </div>
                 <p className="text-2xl font-bold">
                   {gameState.answers.find(a => a.playerId === user._id).isCorrect
-                    ? 'Correct! +1 point!'
+                    ? `Correct! +${gameState.currentQuestion.weightage} ${gameState.currentQuestion.weightage === 1 ? 'point' : 'points'}!`
                     : 'Not quite right this time!'}
                 </p>
               </div>
