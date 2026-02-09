@@ -46,7 +46,7 @@ export default function QuizParty() {
       socket.off('timerUpdate');
       socket.off('timerPausedUpdate');
     };
-  }, []); // FIXED: Empty dependency array
+  }, []);
 
   // SEPARATE useEffect to sync user score
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function QuizParty() {
         setUser(prevUser => ({ ...prevUser, score: updatedUser.score }));
       }
     }
-  }, [gameState]); // Only watch gameState
+  }, [gameState]);
 
   const handleJoin = () => {
     if (name.trim()) {
@@ -123,6 +123,15 @@ export default function QuizParty() {
 
   // Display View (for TV/Screen)
   if (user.role === 'display') {
+    // SAFETY CHECK
+    if (!gameState.players || gameState.players.length === 0) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center">
+          <div className="text-white text-3xl">Waiting for players to join...</div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-8">
         <h1 className="text-6xl font-black text-white text-center mb-8 drop-shadow-lg">
@@ -141,10 +150,12 @@ export default function QuizParty() {
                       alt={p.name}
                       className="w-16 h-16 rounded-full mx-auto mb-2 border-2 border-white object-cover"
                       onError={(e) => {
+                        e.target.onerror = null;
                         e.target.style.display = 'none';
                       }}
                     />
-                  ) : (
+                  ) : null}
+                  {(!p.avatar || !p.avatar.includes('http')) && (
                     <div className="w-16 h-16 rounded-full mx-auto mb-2 border-2 border-white bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-3xl font-bold">
                       {p.name[0].toUpperCase()}
                     </div>
@@ -167,7 +178,7 @@ export default function QuizParty() {
                 </span>
                 <div className="flex items-center gap-3">
                   <span className="text-xl font-bold text-green-600">
-                    {gameState.currentQuestion.weightage} {gameState.currentQuestion.weightage === 1 ? 'pt' : 'pts'}
+                    {gameState.currentQuestion.weightage || 1} {(gameState.currentQuestion.weightage || 1) === 1 ? 'pt' : 'pts'}
                   </span>
                   <span className={`text-3xl font-black ${timerPaused ? 'text-gray-500' : 'text-orange-500'}`}>
                     {timerPaused ? '⏸️' : '⏱️'} {timeLeft}s
@@ -188,17 +199,20 @@ export default function QuizParty() {
                 return (
                   <div
                     key={p._id}
-                    className={`rounded-2xl p-4 text-center transition-all ${hasAnswered ? 'bg-green-400 scale-105' : 'bg-white/30 backdrop-blur-lg'
-                      }`}
+                    className={`rounded-2xl p-4 text-center transition-all ${hasAnswered ? 'bg-green-400 scale-105' : 'bg-white/30 backdrop-blur-lg'}`}
                   >
                     {p.avatar ? (
                       <img
                         src={p.avatar}
                         alt={p.name}
                         className="w-12 h-12 rounded-full mx-auto mb-2 border-2 border-white object-cover"
-                        onError={(e) => e.target.style.display = 'none'}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.style.display = 'none';
+                        }}
                       />
-                    ) : (
+                    ) : null}
+                    {(!p.avatar || !p.avatar.includes('http')) && (
                       <div className="w-12 h-12 rounded-full mx-auto mb-2 border-2 border-white bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-2xl font-bold">
                         {p.name[0].toUpperCase()}
                       </div>
@@ -212,7 +226,7 @@ export default function QuizParty() {
           </div>
         )}
 
-        {gameState.phase === 'judging' && gameState.currentQuestion && (
+        {gameState.phase === 'judging' && gameState.currentQuestion && gameState.answers && (
           <div className="max-w-6xl mx-auto">
             <div className="bg-white/90 backdrop-blur-lg rounded-3xl p-8 mb-6 shadow-2xl">
               <p className="text-3xl font-bold text-gray-800 mb-4">
@@ -223,13 +237,11 @@ export default function QuizParty() {
             <div className="grid md:grid-cols-2 gap-4">
               {gameState.answers.map((ans) => {
                 const player = gameState.players.find(p => p._id === ans.playerId);
+                if (!player) return null;
                 return (
                   <div
                     key={ans.playerId}
-                    className={`rounded-2xl p-6 ${ans.judged
-                      ? ans.isCorrect ? 'bg-green-400' : 'bg-red-400'
-                      : 'bg-white/90'
-                      } backdrop-blur-lg shadow-lg`}
+                    className={`rounded-2xl p-6 ${ans.judged ? ans.isCorrect ? 'bg-green-400' : 'bg-red-400' : 'bg-white/90'} backdrop-blur-lg shadow-lg`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -238,9 +250,13 @@ export default function QuizParty() {
                             src={player.avatar}
                             alt={player.name}
                             className="w-12 h-12 rounded-full border-2 border-white object-cover"
-                            onError={(e) => e.target.style.display = 'none'}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.style.display = 'none';
+                            }}
                           />
-                        ) : (
+                        ) : null}
+                        {(!player.avatar || !player.avatar.includes('http')) && (
                           <div className="w-12 h-12 rounded-full border-2 border-white bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-2xl font-bold">
                             {player.name[0].toUpperCase()}
                           </div>
@@ -268,6 +284,15 @@ export default function QuizParty() {
 
   // Admin View
   if (user.role === 'admin') {
+    // SAFETY CHECK
+    if (!gameState.players || gameState.players.length === 0) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
+          <div className="text-white text-3xl">Waiting for players to join...</div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-4">
         <div className="max-w-4xl mx-auto">
@@ -288,9 +313,13 @@ export default function QuizParty() {
                         src={p.avatar}
                         alt={p.name}
                         className="w-12 h-12 rounded-full mx-auto mb-2 border-2 border-gray-300 object-cover"
-                        onError={(e) => e.target.style.display = 'none'}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.style.display = 'none';
+                        }}
                       />
-                    ) : (
+                    ) : null}
+                    {(!p.avatar || !p.avatar.includes('http')) && (
                       <div className="w-12 h-12 rounded-full mx-auto mb-2 border-2 border-gray-300 bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-2xl font-bold">
                         {p.name[0].toUpperCase()}
                       </div>
@@ -330,10 +359,7 @@ export default function QuizParty() {
               <div className="flex gap-3 mb-4">
                 <button
                   onClick={handleToggleTimer}
-                  className={`flex-1 ${timerPaused
-                    ? 'bg-green-500 hover:bg-green-600'
-                    : 'bg-yellow-500 hover:bg-yellow-600'
-                    } text-white font-bold text-lg py-3 rounded-2xl transition-colors`}
+                  className={`flex-1 ${timerPaused ? 'bg-green-500 hover:bg-green-600' : 'bg-yellow-500 hover:bg-yellow-600'} text-white font-bold text-lg py-3 rounded-2xl transition-colors`}
                 >
                   {timerPaused ? '▶️ RESUME' : '⏸️ PAUSE'}
                 </button>
@@ -351,17 +377,20 @@ export default function QuizParty() {
                   return (
                     <div
                       key={p._id}
-                      className={`rounded-xl p-3 text-center ${hasAnswered ? 'bg-green-400' : 'bg-white/50'
-                        }`}
+                      className={`rounded-xl p-3 text-center ${hasAnswered ? 'bg-green-400' : 'bg-white/50'}`}
                     >
                       {p.avatar ? (
                         <img
                           src={p.avatar}
                           alt={p.name}
                           className="w-10 h-10 rounded-full mx-auto mb-2 border-2 border-white object-cover"
-                          onError={(e) => e.target.style.display = 'none'}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.style.display = 'none';
+                          }}
                         />
-                      ) : (
+                      ) : null}
+                      {(!p.avatar || !p.avatar.includes('http')) && (
                         <div className="w-10 h-10 rounded-full mx-auto mb-2 border-2 border-white bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xl font-bold">
                           {p.name[0].toUpperCase()}
                         </div>
@@ -375,7 +404,7 @@ export default function QuizParty() {
             </div>
           )}
 
-          {gameState.phase === 'judging' && gameState.currentQuestion && (
+          {gameState.phase === 'judging' && gameState.currentQuestion && gameState.answers && (
             <div>
               <div className="bg-white rounded-3xl p-6 mb-6 shadow-xl">
                 <p className="text-2xl font-bold">{gameState.currentQuestion.question}</p>
@@ -384,13 +413,11 @@ export default function QuizParty() {
               <div className="space-y-4 mb-6">
                 {gameState.answers.map((ans) => {
                   const player = gameState.players.find(p => p._id === ans.playerId);
+                  if (!player) return null;
                   return (
                     <div
                       key={ans.playerId}
-                      className={`rounded-2xl p-4 ${ans.judged
-                        ? ans.isCorrect ? 'bg-green-400' : 'bg-red-400'
-                        : 'bg-white'
-                        } shadow-lg`}
+                      className={`rounded-2xl p-4 ${ans.judged ? ans.isCorrect ? 'bg-green-400' : 'bg-red-400' : 'bg-white'} shadow-lg`}
                     >
                       <div className="flex justify-between items-center">
                         <div>
@@ -449,9 +476,13 @@ export default function QuizParty() {
               src={user.avatar}
               alt={user.name}
               className="w-24 h-24 rounded-full mx-auto mb-2 border-4 border-white object-cover"
-              onError={(e) => e.target.style.display = 'none'}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.style.display = 'none';
+              }}
             />
-          ) : (
+          ) : null}
+          {(!user.avatar || !user.avatar.includes('http')) && (
             <div className="w-24 h-24 rounded-full mx-auto mb-2 border-4 border-white bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-4xl font-bold">
               {user.name[0].toUpperCase()}
             </div>
@@ -518,17 +549,20 @@ export default function QuizParty() {
                 return (
                   <div
                     key={p._id}
-                    className={`rounded-xl p-3 text-center ${hasAnswered ? 'bg-green-400' : 'bg-white/50'
-                      }`}
+                    className={`rounded-xl p-3 text-center ${hasAnswered ? 'bg-green-400' : 'bg-white/50'}`}
                   >
                     {p.avatar ? (
                       <img
                         src={p.avatar}
                         alt={p.name}
                         className="w-8 h-8 rounded-full mx-auto mb-1 border-2 border-white object-cover"
-                        onError={(e) => e.target.style.display = 'none'}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.style.display = 'none';
+                        }}
                       />
-                    ) : (
+                    ) : null}
+                    {(!p.avatar || !p.avatar.includes('http')) && (
                       <div className="w-8 h-8 rounded-full mx-auto mb-1 border-2 border-white bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-sm font-bold">
                         {p.name[0].toUpperCase()}
                       </div>
@@ -542,13 +576,13 @@ export default function QuizParty() {
           </div>
         )}
 
-        {gameState.phase === 'judging' && (
+        {gameState.phase === 'judging' && gameState.currentQuestion && (
           <div className="bg-white rounded-3xl p-8 text-center shadow-xl">
             <div className="text-6xl mb-4">👀</div>
             <p className="text-2xl font-bold text-gray-800 mb-2">Judging answers...</p>
             <p className="text-gray-600">Admin is reviewing all answers!</p>
 
-            {gameState.answers.find(a => a.playerId === user._id && a.judged) && (
+            {gameState.answers && gameState.answers.find(a => a.playerId === user._id && a.judged) && (
               <div className={`mt-6 p-6 rounded-2xl ${gameState.answers.find(a => a.playerId === user._id).isCorrect
                 ? 'bg-green-100 border-2 border-green-400'
                 : 'bg-red-100 border-2 border-red-400'
@@ -558,7 +592,7 @@ export default function QuizParty() {
                 </div>
                 <p className="text-2xl font-bold">
                   {gameState.answers.find(a => a.playerId === user._id).isCorrect
-                    ? `Correct! +${gameState.currentQuestion.weightage} ${gameState.currentQuestion.weightage === 1 ? 'point' : 'points'}!`
+                    ? `Correct! +${gameState.currentQuestion.weightage || 1} ${(gameState.currentQuestion.weightage || 1) === 1 ? 'point' : 'points'}!`
                     : 'Not quite right this time!'}
                 </p>
               </div>
